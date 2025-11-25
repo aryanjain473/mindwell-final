@@ -8,7 +8,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://your-backend-url.onrender.com/api/$1"
+      "destination": "https://mindwell-final.onrender.com/api/$1"
     },
     {
       "source": "/(.*)",
@@ -27,8 +27,7 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://your-backend-url.onrender.com",
-    "VITE_GOOGLE_MAPS_API_KEY": "@google-maps-api-key"
+    "VITE_API_URL": "https://mindwell-final.onrender.com"
   }
 }
 
