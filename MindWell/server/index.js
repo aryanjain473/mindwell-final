@@ -44,7 +44,7 @@ console.log('GOOGLE_MAPS_API_KEY:', process.env.GOOGLE_MAPS_API_KEY ? 'Set' : 'N
 connectDB();
 
 // Middleware
-// CORS configuration - handle trailing slashes and multiple origins
+// CORS configuration - handle trailing slashes and multiple origins (including Vercel preview URLs)
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 const allowedOrigins = [
   clientUrl,
@@ -64,9 +64,17 @@ app.use(cors({
     
     // Check if origin matches (with or without trailing slash)
     if (normalizedAllowed.includes(normalizedOrigin)) {
-      // Return the actual origin (not normalized) to match browser's expectation
       callback(null, origin);
-    } else {
+    } 
+    // Allow all Vercel preview URLs (for preview deployments)
+    else if (origin.includes('.vercel.app')) {
+      callback(null, origin);
+    }
+    // Allow localhost for development
+    else if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      callback(null, origin);
+    }
+    else {
       console.log('CORS blocked:', origin, 'Allowed:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
