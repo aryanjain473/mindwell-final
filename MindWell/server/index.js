@@ -44,26 +44,30 @@ console.log('GOOGLE_MAPS_API_KEY:', process.env.GOOGLE_MAPS_API_KEY ? 'Set' : 'N
 connectDB();
 
 // Middleware
-// CORS configuration - handle trailing slashes
+// CORS configuration - handle trailing slashes and multiple origins
+const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 const allowedOrigins = [
-  process.env.CLIENT_URL,
-  process.env.CLIENT_URL?.replace(/\/$/, ''), // Remove trailing slash
-  process.env.CLIENT_URL?.replace(/\/$/, '') + '/', // Add trailing slash
+  clientUrl,
+  clientUrl.replace(/\/$/, ''), // Remove trailing slash
+  clientUrl.replace(/\/$/, '') + '/', // Add trailing slash
   'http://localhost:5173'
-].filter(Boolean); // Remove undefined values
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Check if origin is in allowed list (with or without trailing slash)
+    // Normalize origin (remove trailing slash for comparison)
     const normalizedOrigin = origin.replace(/\/$/, '');
     const normalizedAllowed = allowedOrigins.map(o => o?.replace(/\/$/, ''));
     
+    // Check if origin matches (with or without trailing slash)
     if (normalizedAllowed.includes(normalizedOrigin)) {
-      callback(null, true);
+      // Return the actual origin (not normalized) to match browser's expectation
+      callback(null, origin);
     } else {
+      console.log('CORS blocked:', origin, 'Allowed:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
