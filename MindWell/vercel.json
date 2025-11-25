@@ -27,7 +27,7 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://mindwell-final.onrender.com"
+    "VITE_API_URL": "https://mindwell-final.onrender.com/api"
   }
 }
 
