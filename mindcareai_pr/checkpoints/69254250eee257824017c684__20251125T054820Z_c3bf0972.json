@@ -1,0 +1,11 @@
+{
+  "user_id": "69254250eee257824017c684",
+  "checkpoint_id": "20251125T054820Z_c3bf0972",
+  "label": "session-finish",
+  "created_at": "2025-11-25T05:48:20.055222",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user initially expressed feeling happy but later reported feeling overwhelmed, uncertain, and disgusted due to upcoming exams.\n\n### Sleep\nNo information provided\n\n### Appetite\nNo information provided\n\n### Main Stressors\n- Upcoming exams\n- Feeling overwhelmed and uncertain about not knowing what to do\n\n### Protective Factors / Supports\n- No specific support systems mentioned, but the assistant suggested reaching out to a trusted friend, family member, or teacher for support\n\n### Risk Level\nMedium \nThe user's expression of feeling overwhelmed and uncertain about their exams, along with a sense of disgust towards the end of the session, indicates some level of distress. However, there was no explicit mention of suicidal thoughts, self-harm, or immediate danger, which is why the risk level is assessed as medium rather than high. The user's ability to express happiness initially also suggests some resilience.",
+    "risk": "medium"
+  }
+}

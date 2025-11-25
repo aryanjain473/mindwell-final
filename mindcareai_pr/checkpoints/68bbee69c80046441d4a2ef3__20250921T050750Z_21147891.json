@@ -1,0 +1,11 @@
+{
+  "user_id": "68bbee69c80046441d4a2ef3",
+  "checkpoint_id": "20250921T050750Z_21147891",
+  "label": "session-finish",
+  "created_at": "2025-09-21T05:07:50.773372",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user is feeling sad, overwhelmed, frustrated, and disappointed, primarily due to concerns about their final year project deadlines.\n\n### BOLD(Sleep)\nNo information provided.\n\n### Appetite\nNo information provided.\n\n### Main Stressors\n- The user's main stressor is their final year project, specifically the nearing deadlines and feeling overwhelmed by the tasks that need to be completed.\n\n### Protective Factors / Supports\n- The user has access to a support system through the mental health support session.\n- Suggested coping strategies include:\n  - Taking a few deep breaths to calm down.\n  - Breaking down the project into smaller, manageable tasks.\n  - Making a list of what needs to be done and when.\n  - Taking short breaks to do something enjoyable or relaxing, such as going for a walk, doing a quick workout, listening to favorite music, or chatting with a friend.\n\n### Risk Level\n- The risk level appears to be **Medium**. The user is experiencing significant distress and feelings of being overwhelmed by their academic responsibilities. However, there is no explicit mention of suicidal thoughts or immediate danger. The user is engaged and responsive, and the conversation suggests they are seeking support to manage their stress.",
+    "risk": "medium"
+  }
+}

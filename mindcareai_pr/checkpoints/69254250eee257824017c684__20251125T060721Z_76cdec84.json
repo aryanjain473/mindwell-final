@@ -1,0 +1,11 @@
+{
+  "user_id": "69254250eee257824017c684",
+  "checkpoint_id": "20251125T060721Z_76cdec84",
+  "label": "session-finish",
+  "created_at": "2025-11-25T06:07:21.018147",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user, Dhruv, initially presented with a heavy emotional burden and feelings of being upset. However, he later reported feeling joyful and confident. Towards the end of the session, he seemed to be feeling upset, disgusted, and appreciative.\n\n### Sleep\nNo information provided.\n\n### Appetite\nNo information provided.\n\n### Main Stressors\nThe user's underlying anger and disgust were identified as potential stressors, but the specific causes were not explored due to the session ending abruptly.\n\n### Protective Factors / Supports\nThe user's ability to express appreciation and gratitude was noted. The assistant also suggested healthy coping strategies, such as taking deep breaths and engaging in physical activity (e.g., going for a short walk) to manage overwhelming emotions. Writing down the causes of disgust was also proposed as a potential helpful activity.\n\n### Risk Level\nThe assistant initially assessed the user's risk level as low, with a confidence level of 1.00. However, the user's underlying anger and disgust towards the end of the session suggest that the risk level may be higher than initially thought. Based on the conversation, I would rate the risk level as **Medium**.",
+    "risk": "medium"
+  }
+}

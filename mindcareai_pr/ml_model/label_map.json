@@ -1,0 +1,20 @@
+{
+    "polarity_map": {
+        "joy": "positive",
+        "fear": "negative",
+        "anger": "negative",
+        "sadness": "negative",
+        "disgust": "negative",
+        "shame": "negative",
+        "guilt": "negative"
+    },
+    "risk_map": {
+        "joy": "low",
+        "fear": "medium",
+        "anger": "medium",
+        "sadness": "high",
+        "disgust": "medium",
+        "shame": "high",
+        "guilt": "high"
+    }
+}

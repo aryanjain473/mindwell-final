@@ -1,0 +1,11 @@
+{
+  "user_id": "68cbdcfe58a419ad42352f71",
+  "checkpoint_id": "20250918T142027Z_20014b5f",
+  "label": "session-finish",
+  "created_at": "2025-09-18T14:20:27.923720",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user, Dhruv, initially seemed a bit quiet and concerned about being remembered. However, as the conversation progressed, he expressed feeling very happy, particularly about scoring 90 in math. Towards the end, he was optimistic but also a bit uncertain about choosing engineering as a future path. Overall, the mood can be described as **generally positive with a hint of uncertainty**.\n\n### Sleep\n**No information provided**\n\n### Appetite\n**No information provided**\n\n### Main Stressors\n- Uncertainty about being remembered or recognized.\n- Uncertainty about whether engineering is the right career choice for him.\n\n### Protective Factors / Supports\n- Positive recent achievement (scoring 90 in math).\n- Openness to exploring and researching different areas of interest (engineering).\n- Suggested support strategies:\n  - Focusing on the present moment and taking deep breaths.\n  - Reflecting on strengths and interests.\n  - Seeking advice from trusted individuals like teachers or mentors.\n\n### Risk Level\n**Low** - The conversation did not indicate severe distress, hopelessness, or harmful thoughts. The user's concerns were related to normal life decisions and self-doubt, which are common and manageable with support and exploration.",
+    "risk": "low"
+  }
+}

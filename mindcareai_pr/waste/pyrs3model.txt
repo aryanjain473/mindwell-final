@@ -1,0 +1,166 @@
+import pandas as pd
+import numpy as np
+import json
+import joblib
+
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.svm import LinearSVC
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+import re
+import difflib
+
+# =========================
+# NLTK setup
+# =========================
+nltk.download("stopwords")
+nltk.download("wordnet")
+
+# =========================
+# Load Dataset
+# =========================
+df = pd.read_csv("C:/Users/Dhruv/Desktop/mindcareai_project/ml_model/data/isear.csv")
+
+# normalize text and labels
+df["Content"] = df["Content"].astype(str)
+df["Emotion"] = df["Emotion"].astype(str).str.lower().str.strip()
+
+# fix simple typos in emotion labels
+_known = ["joy", "sadness", "anger", "fear", "shame", "disgust", "guilt"]
+
+def _fix(lbl: str) -> str:
+    if not isinstance(lbl, str) or lbl == "":
+        return lbl
+    m = difflib.get_close_matches(lbl, _known, n=1, cutoff=0.6)
+    return m[0] if m else lbl
+
+df["Emotion"] = df["Emotion"].apply(_fix)
+
+# drop rows with missing text or labels
+df = df[df["Content"].notna() & df["Emotion"].notna() & (df["Emotion"] != "")].copy()
+
+# Iteratively drop labels with <2 examples
+while True:
+    label_counts = df["Emotion"].value_counts()
+    print("Label counts:\n", label_counts)
+    low_labels = label_counts[label_counts < 2].index.tolist()
+    if not low_labels:
+        break
+    print(f"Dropping labels with fewer than 2 examples: {low_labels}")
+    df = df[~df["Emotion"].isin(low_labels)].copy()
+    if df.empty:
+        raise ValueError("No data left after dropping rare labels.")
+
+texts = df["Content"].astype(str)
+labels = df["Emotion"].astype(str)
+
+# =========================
+# Preprocessing Function
+# =========================
+stop_words = set(stopwords.words("english"))
+lemmatizer = WordNetLemmatizer()
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r"http\S+|www\S+", "", text)  # remove URLs
+    text = re.sub(r"[^a-z\s]", "", text)        # remove punctuation/numbers
+    tokens = text.split()
+    tokens = [lemmatizer.lemmatize(w) for w in tokens if w not in stop_words]
+    return " ".join(tokens)
+
+texts_cleaned = texts.apply(clean_text)
+
+# =========================
+# Train/Test Split
+# =========================
+counts = labels.value_counts()
+if any(counts < 2):
+    print("⚠️ Some classes have <2 samples → non-stratified split.")
+    strat_param = None
+else:
+    strat_param = labels
+
+X_train, X_test, y_train, y_test = train_test_split(
+    texts_cleaned, labels, test_size=0.2, stratify=strat_param, random_state=42
+)
+
+# =========================
+# Pipeline + Hyperparameter Tuning (LinearSVC)
+# =========================
+pipeline = Pipeline([
+    ("tfidf", TfidfVectorizer()),
+    ("clf", LinearSVC(class_weight="balanced", max_iter=3000))
+])
+
+param_grid = {
+    "tfidf__ngram_range": [(1, 1), (1, 2), (1, 3)],
+    "tfidf__max_features": [20000, 50000, 75000],
+    "clf__C": [0.1, 1, 2, 5]
+}
+
+print("\n🔍 Running GridSearchCV with LinearSVC...")
+grid = GridSearchCV(
+    pipeline,
+    param_grid,
+    cv=3,
+    n_jobs=-1,
+    verbose=2,
+    scoring="accuracy"
+)
+
+grid.fit(X_train, y_train)
+
+print("\n✅ Best Parameters:", grid.best_params_)
+print("✅ Best CV Accuracy:", grid.best_score_)
+
+best_model = grid.best_estimator_
+
+# =========================
+# Evaluation
+# =========================
+y_pred = best_model.predict(X_test)
+
+print("\n=== Classification Report (Tuned, LinearSVC) ===")
+print(classification_report(y_test, y_pred))
+
+print("\n=== Confusion Matrix (Tuned, LinearSVC) ===")
+print(confusion_matrix(y_test, y_pred))
+
+acc = accuracy_score(y_test, y_pred)
+print(f"\n🎯 Final Test Accuracy (Tuned, LinearSVC): {acc:.4f}")
+
+# =========================
+# Save Model & Metadata
+# =========================
+joblib.dump(best_model, "ml_model/emotion_model.pkl")
+
+label_map = {
+    "polarity_map": {
+        "joy": "positive",
+        "fear": "negative",
+        "anger": "negative",
+        "sadness": "negative",
+        "disgust": "negative",
+        "shame": "negative",
+        "guilt": "negative"
+    },
+    "risk_map": {
+        "joy": "low",
+        "fear": "medium",
+        "anger": "medium",
+        "sadness": "high",
+        "disgust": "medium",
+        "shame": "high",
+        "guilt": "high"
+    }
+}
+
+with open("ml_model/label_map.json", "w", encoding="utf-8") as f:
+    json.dump(label_map, f, indent=4)
+
+print("\n✅ Tuned LinearSVC model and label_map.json saved successfully!")

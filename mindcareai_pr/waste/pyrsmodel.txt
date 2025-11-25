@@ -1,0 +1,260 @@
+'''
+# ml_model/train_emotion_model.py
+"""
+Train an emotion classifier on ISEAR dataset (baseline: TF-IDF + LogisticRegression).
+Saves:
+ - ml_model/emotion_model.pkl
+ - ml_model/vectorizer.pkl
+ - ml_model/label_map.json
+"""
+import os
+import json
+import argparse
+from pathlib import Path
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import classification_report, confusion_matrix
+import joblib
+import re
+import warnings
+import difflib
+
+warnings.filterwarnings("ignore")
+
+# ---------------------------
+# Config
+# ---------------------------
+ROOT = Path(__file__).resolve().parents[1]  # ml_model/..
+DATA_PATH = ROOT / "ml_model" / "data" / "isear.csv"
+MODEL_DIR = ROOT
+MODEL_PATH = MODEL_DIR / "emotion_model.pkl"
+VECT_PATH = MODEL_DIR / "vectorizer.pkl"
+LABEL_MAP_PATH = MODEL_DIR / "label_map.json"
+
+# ---------------------------
+# Simple preprocessing
+# ---------------------------
+def clean_text(text: str) -> str:
+    if not isinstance(text, str):
+        return ""
+    # basic normalization
+    text = text.lower()
+    # remove URLs, emails
+    text = re.sub(r"http\S+|www\S+|https\S+", "", text)
+    text = re.sub(r"\S+@\S+", "", text)
+    # remove non-alpha but keep spaces and common punctuation
+    text = re.sub(r"[^a-z0-9\s,.!?'-]", " ", text)
+    # collapse multiple spaces
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+# ---------------------------
+# Polarity & risk mapping
+# ---------------------------
+# Basic mapping from emotion -> polarity and risk level (tunable)
+DEFAULT_POLARITY = {
+    "joy": "positive",
+    "anger": "negative",
+    "fear": "negative",
+    "sadness": "negative",
+    "shame": "negative",
+    "guilt": "negative",
+    "disgust": "negative",
+}
+
+DEFAULT_RISK = {
+    # high risk emotions may include prolonged sadness, hopelessness but ISEAR labels are coarse.
+    # We'll mark 'sadness', 'fear', 'guilt', 'shame' as medium risk and require a rule-based risk-check for high.
+    "joy": "low",
+    "anger": "low",
+    "fear": "medium",
+    "sadness": "medium",
+    "shame": "medium",
+    "guilt": "medium",
+    "disgust": "low",
+}
+
+# ---------------------------
+# Load dataset
+# ---------------------------
+def load_isear(path: Path):
+    if not path.exists():
+        alt_examples = [str(DATA_PATH), str(ROOT / "data" / "isear.csv"), str(ROOT.parent / "data" / "isear.csv")]
+        raise FileNotFoundError(
+            f"ISEAR CSV not found at {path}.\nPlace the CSV at one of these locations: {alt_examples}\n"
+            "Or run this script with --data_path <path_to_isear.csv> to specify a custom location."
+        )
+
+    # Try reading with a few common separators and pick the first that yields >1 column
+    df = None
+    for sep in (None, ';', '\t', '|', ','):
+        try:
+            if sep is None:
+                # let pandas infer
+                tmp = pd.read_csv(path, encoding="utf-8", low_memory=False)
+            else:
+                tmp = pd.read_csv(path, encoding="utf-8", sep=sep, low_memory=False)
+            if tmp is not None and tmp.shape[1] > 1:
+                df = tmp
+                break
+        except Exception:
+            continue
+
+    if df is None:
+        # last try with python engine and sep=None
+        try:
+            df = pd.read_csv(path, encoding="utf-8", sep=None, engine="python")
+        except Exception as e:
+            raise ValueError(f"Unable to read CSV at {path}: {e}")
+
+    # normalize column names to strings
+    df.columns = [str(c) for c in df.columns]
+
+    # heuristics for text and label columns
+    possible_text_cols = [c for c in df.columns if c.lower() in {"sit", "situation", "situation_text", "text", "sentence", "description", "situation_description"}]
+    possible_label_cols = [c for c in df.columns if c.lower() in {"emo", "emotions", "emotion", "label", "emotion_label"}]
+
+    if possible_text_cols:
+        text_col = possible_text_cols[0]
+    else:
+        # choose column with largest average string length
+        lengths = {c: df[c].astype(str).str.len().mean() if df[c].notna().any() else 0 for c in df.columns}
+        text_col = max(lengths, key=lengths.get)
+
+    if possible_label_cols:
+        label_col = possible_label_cols[0]
+    else:
+        # choose a column (not text_col) with relatively few unique values
+        uniq = {c: int(df[c].nunique(dropna=True)) for c in df.columns}
+        candidates = [c for c in df.columns if c != text_col and 1 < uniq.get(c, 0) < max(100, len(df) // 2)]
+        if candidates:
+            label_col = sorted(candidates, key=lambda c: uniq[c])[0]
+        else:
+            cols_except_text = [c for c in df.columns if c != text_col]
+            if not cols_except_text:
+                raise ValueError(f"Unable to infer text/label columns from CSV. Columns: {list(df.columns)}")
+            label_col = cols_except_text[0]
+
+    try:
+        df = df[[text_col, label_col]].rename(columns={text_col: "text", label_col: "emotion"})
+    except Exception as e:
+        raise ValueError(f"Error selecting columns ({text_col}, {label_col}) from dataframe. Columns present: {list(df.columns)}") from e
+
+    # drop NA and clean
+    df = df.dropna(subset=["text", "emotion"]).copy()
+    df["text"] = df["text"].astype(str).apply(clean_text)
+    df["emotion"] = df["emotion"].astype(str).str.lower().str.strip()
+    df["emotion"] = df["emotion"].apply(lambda x: x.split()[0].strip().strip(",;:") if isinstance(x, str) else x)
+
+    # attempt to fix small typos in emotion labels using fuzzy matching against known emotions
+    known_labels = sorted(list(DEFAULT_POLARITY.keys()))
+    def _fix_label(lbl: str) -> str:
+        if not isinstance(lbl, str):
+            return lbl
+        lbl = lbl.strip().lower()
+        if lbl in known_labels:
+            return lbl
+        match = difflib.get_close_matches(lbl, known_labels, n=1, cutoff=0.6)
+        if match:
+            print(f"Mapping emotion label '{lbl}' -> '{match[0]}'")
+            return match[0]
+        return lbl
+
+    df["emotion"] = df["emotion"].apply(_fix_label)
+    return df
+
+# ---------------------------
+# Train & save
+# ---------------------------
+def train_and_save(test_size=0.2, random_state=42, data_path: str = None, min_count: int = 2):
+    print("Loading dataset...")
+    data_path = data_path or str(DATA_PATH)
+    df = load_isear(Path(data_path))
+    print(f"Total examples: {len(df)}")
+    # Keep only common emotions present in dataset
+    label_counts = df["emotion"].value_counts()
+    print("Label counts:\n", label_counts)
+
+    # Drop labels with too few examples
+    if min_count > 1:
+        low_labels = label_counts[label_counts < min_count].index.tolist()
+        if low_labels:
+            print(f"Dropping labels with fewer than {min_count} examples: {low_labels}")
+            df = df[~df["emotion"].isin(low_labels)].copy()
+            label_counts = df["emotion"].value_counts()
+            print("Label counts after dropping low-frequency labels:\n", label_counts)
+
+    if df.empty:
+        raise ValueError("No data left after filtering low-frequency labels. Adjust --min_count or provide a different dataset.")
+
+    X = df["text"].values
+    y = df["emotion"].values
+
+    # Ensure stratify is valid: each class must have at least 2 members
+    stratify_param = y
+    counts = df["emotion"].value_counts()
+    if any(counts < 2):
+        print("Warning: Some classes have fewer than 2 examples after filtering. Falling back to non-stratified split.")
+        stratify_param = None
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, stratify=stratify_param, random_state=random_state
+    )
+
+    print("Training set:", len(X_train), "Test set:", len(X_test))
+
+    # Build pipeline
+    vect = TfidfVectorizer(ngram_range=(1,2), max_features=20000)
+    clf = LogisticRegression(max_iter=1000, class_weight="balanced", solver="saga")
+
+    pipeline = Pipeline([
+        ("vect", vect),
+        ("clf", clf)
+    ])
+
+    print("Training model (TF-IDF + LogisticRegression)...")
+    pipeline.fit(X_train, y_train)
+
+    # Predict & eval
+    print("Evaluating on test set...")
+    y_pred = pipeline.predict(X_test)
+    report = classification_report(y_test, y_pred, digits=4)
+    print("Classification report:\n", report)
+
+    # Save
+    print("Saving model and vectorizer...")
+    joblib.dump(pipeline, MODEL_PATH)
+    print(f"Saved model to {MODEL_PATH}")
+
+    # Save label map and polarity/risk maps
+    unique_labels = sorted(list(set(y)))
+    label_map = {"labels": unique_labels, "polarity_map": DEFAULT_POLARITY, "risk_map": DEFAULT_RISK}
+    with open(LABEL_MAP_PATH, "w", encoding="utf-8") as f:
+        json.dump(label_map, f, indent=2)
+
+    print("Saved label_map.json")
+
+    # Also save a small test results file
+    results_df = pd.DataFrame({"text": X_test, "gold": y_test, "pred": y_pred})
+    results_df.to_csv(MODEL_DIR / "test_predictions.csv", index=False)
+    print("Saved test_predictions.csv")
+
+    return pipeline, (X_test, y_test, y_pred)
+
+# ---------------------------
+# Command line
+# ---------------------------
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Train ISEAR emotion classifier")
+    parser.add_argument("--test_size", type=float, default=0.2, help="Test size fraction")
+    parser.add_argument("--random_state", type=int, default=42, help="Random seed")
+    parser.add_argument("--data_path", type=str, default=str(DATA_PATH), help="Path to ISEAR CSV file")
+    parser.add_argument("--min_count", type=int, default=2, help="Minimum examples per label to keep (labels with fewer examples will be dropped)")
+    args = parser.parse_args()
+    train_and_save(test_size=args.test_size, random_state=args.random_state, data_path=args.data_path, min_count=args.min_count)
+'''

@@ -1,0 +1,11 @@
+{
+  "user_id": "68d381cf8efd098e06b56352",
+  "checkpoint_id": "20250924T053302Z_fd604c44",
+  "label": "session-finish",
+  "created_at": "2025-09-24T05:33:02.844731",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user's mood fluctuated throughout the session, initially presenting as positive and \"good,\" but later revealing underlying emotions such as guilt, regret, anger, and disgust.\n\n### **Sleep**\nNo information provided.\n\n### Appetite\nThe user mentioned having \"delicious food,\" which suggests that their appetite is likely normal or healthy.\n\n### Main Stressors\nThe conversation did not explicitly reveal specific stressors. However, the user mentioned feeling \"free,\" having enjoyed food, and completing work, which seemed to be connected to their positive initial mood. Later, underlying feelings of guilt, regret, anger, and disgust emerged, suggesting that there may be unresolved issues or stressors not directly stated.\n\n### Protective Factors / Supports\nThe user did not explicitly mention any support systems. However, the assistant suggested several coping strategies, including:\n- Writing down things one is grateful for\n- Taking a few deep breaths to acknowledge and process feelings\n- Engaging in physical activity, such as a short walk, to release tension\n\n### Risk Level\nMedium. The user's initial positive mood and statements about being free, enjoying food, and completing work were overshadowed by the emergence of strong negative emotions (guilt, regret, anger, disgust). The assistant's concern for the user's safety and suggestions to contact emergency services or a trusted person if in immediate danger imply a level of concern about the user's well-being. However, there was no explicit mention of suicidal thoughts or severe hopelessness. The user's decision to end the session abruptly also suggests some level of distress.",
+    "risk": "medium"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "user_id": "69254250eee257824017c684",
+  "checkpoint_id": "20251125T074955Z_0fd9ceaf",
+  "label": "session-finish",
+  "created_at": "2025-11-25T07:49:55.157721",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user appears to be experiencing a predominantly sad and stressed mood, with feelings of disgust and overwhelm.\n\n### Sleep\nNo information provided.\n\n### Appetite\nNo information provided.\n\n### Main Stressors\nThe user's main stressor appears to be upcoming exams, which are causing feelings of overwhelm, frustration, and sadness.\n\n### Protective Factors / Supports\nThe following protective factors and supports were mentioned:\n- The user's safety and well-being were acknowledged and prioritized.\n- The assistant offered to help the user focus on the present moment and calm their feelings through deep breathing exercises.\n- The assistant suggested taking a short break to engage in enjoyable activities, such as going for a walk or listening to calming music, to help manage stress.\n- The assistant mentioned that there are helpful features and resources available to support the user if they are feeling overwhelmed.\n\n### Risk Level\nThe risk level appears to be **Low** to **Medium**. The user expressed feelings of sadness, stress, and overwhelm, but did not indicate any immediate danger or suicidal thoughts. However, the assistant did provide a safety check and offered support resources, suggesting that the user's emotional state was concerning enough to warrant attention.",
+    "risk": "medium"
+  }
+}

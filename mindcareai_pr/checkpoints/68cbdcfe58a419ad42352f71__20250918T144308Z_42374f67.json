@@ -1,0 +1,11 @@
+{
+  "user_id": "68cbdcfe58a419ad42352f71",
+  "checkpoint_id": "20250918T144308Z_42374f67",
+  "label": "session-finish",
+  "created_at": "2025-09-18T14:43:08.767269",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user, Dhruv, initially seemed to be carrying heavy emotions, possibly feeling overwhelmed or frustrated. However, he quickly shifted to expressing happiness. Towards the end of the session, frustration or upset was observed.\n\n### Sleep\nNo information provided.\n\n### Appetite\nNo information provided.\n\n### Main Stressors\n- The conversation revolved around Dhruv's curiosity and concern about Arjit Singh, an Indian playback singer.\n- It seemed that Dhruv was looking for information about Arjit Singh, possibly to satisfy his curiosity or admiration for the singer.\n\n### Protective Factors / Supports\n- Music, specifically Arjit Singh's songs, serves as a source of joy and comfort for Dhruv.\n- The assistant suggested coping strategies such as:\n  - Writing down three things Dhruv is grateful for to savor happy feelings.\n  - Making a playlist of Arjit Singh's uplifting songs for when he's feeling down.\n  - Taking deep breaths to manage feelings of overwhelm.\n  - Engaging in activities that bring comfort or relaxation.\n\n### Risk Level\nLow. \n- The session did not indicate severe distress, hopelessness, or harmful thoughts. \n- The user's emotions fluctuated between happiness and frustration, primarily in the context of his interest in Arjit Singh. \n- The concerns expressed were related to curiosity about a public figure rather than personal issues.",
+    "risk": "medium"
+  }
+}

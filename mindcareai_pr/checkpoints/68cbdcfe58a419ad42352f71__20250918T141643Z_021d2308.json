@@ -1,0 +1,11 @@
+{
+  "user_id": "68cbdcfe58a419ad42352f71",
+  "checkpoint_id": "20250918T141643Z_021d2308",
+  "label": "session-finish",
+  "created_at": "2025-09-18T14:16:43.342413",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user, Dhruv, appears to be experiencing uncertainty and possibly confusion. The conversation revolves around Dhruv questioning and confirming his own name, indicating a potential issue with memory or identity.\n\n### BOLD(Sleep)\nNo information provided.\n\n### Appetite\nNo information provided.\n\n### Main Stressors\nThe main stressor appears to be Dhruv's uncertainty about his name and possibly his memory or cognitive function. He repeatedly questions and seeks confirmation of his name, suggesting that this is a significant concern for him at the moment.\n\n### Protective Factors / Supports\nThe support system or protective factor mentioned is the mental health support session itself, where Dhruv is encouraged to express his concerns and is offered support and understanding.\n\n### Risk Level\nMedium. The risk level is considered medium because while Dhruv does not express severe distress, hopelessness, or harmful thoughts directly, his uncertainty about basic personal information (his name) and the session ending abruptly could indicate underlying cognitive or psychological issues that need attention. Further evaluation would be necessary to determine the severity and nature of these concerns.",
+    "risk": "low"
+  }
+}

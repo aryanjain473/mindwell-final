@@ -1,0 +1,11 @@
+{
+  "user_id": "69254250eee257824017c684",
+  "checkpoint_id": "20251125T061322Z_16b7b979",
+  "label": "session-finish",
+  "created_at": "2025-11-25T06:13:22.016353",
+  "history": [],
+  "extra": {
+    "summary": "### Overall Mood\nThe user, Dhruv, initially expressed feelings of disgust and upset but later transitioned to a positive state of mind, feeling joyful and excited, and finally stated he was happy.\n\n### Sleep\nNo information provided.\n\n### Appetite\nNo information provided.\n\n### Main Stressors\nThe user initially mentioned feeling disgusted about something, but the specific cause of this emotion was not explicitly stated. It seemed to be a significant concern for Dhruv at the beginning of the session.\n\n### Protective Factors / Supports\nThe assistant suggested several coping strategies, including:\n- Taking a few deep breaths\n- Getting outside for some fresh air\n- Sharing what's making him happy with a friend or loved one\n- Doing something he loves or that always makes him smile (e.g., listening to favorite music, going for a short walk)\n\n### Risk Level\nLow - The user's mood improved significantly during the session, and there were no mentions of severe distress, hopelessness, or harmful thoughts. The initial disgust and upset seemed to dissipate as the session progressed, replaced by positive emotions.",
+    "risk": "medium"
+  }
+}

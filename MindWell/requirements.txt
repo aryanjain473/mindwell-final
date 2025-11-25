@@ -1,0 +1,11 @@
+# Python dependencies for MindWell AI services
+
+# Facial Emotion Detection
+deepface>=0.0.79
+opencv-python>=4.8.0
+tf-keras>=3.0.0
+
+# Note: DeepFace will automatically download required models on first use
+# Models are cached locally for faster subsequent runs
+# tf-keras is required for TensorFlow 2.20+
+
