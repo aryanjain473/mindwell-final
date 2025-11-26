@@ -117,6 +117,15 @@ router.post('/session/start', authMiddleware, async (req, res) => {
     const { email, consentEmail } = req.body;
     const userId = req.user.userId;
 
+    // Check if AI service URL is configured
+    if (!AI_SERVICE_URL || AI_SERVICE_URL === 'http://127.0.0.1:8001') {
+      return res.status(503).json({
+        success: false,
+        message: 'AI service is not configured. Please contact support.',
+        error: 'AI_SERVICE_NOT_CONFIGURED'
+      });
+    }
+
     // Debug logging
     console.log('📧 Chatbot session start request:');
     console.log('   Email from body:', email);
@@ -151,7 +160,10 @@ router.post('/session/start', authMiddleware, async (req, res) => {
     console.error('Error starting chat session:', error);
     
     // Handle AI service unavailable
-    if (error.code === 'ECONNREFUSED' || error.response?.status >= 500) {
+    if (error.code === 'ECONNREFUSED' || 
+        error.code === 'ENOTFOUND' ||
+        error.code === 'ETIMEDOUT' ||
+        error.response?.status >= 500) {
       return res.status(503).json({
         success: false,
         message: 'AI service is temporarily unavailable. Please try again later.',
@@ -301,7 +313,10 @@ router.post('/session/respond', authMiddleware, async (req, res) => {
     console.error('Error processing chat message:', error);
     
     // Handle AI service unavailable
-    if (error.code === 'ECONNREFUSED' || error.response?.status >= 500) {
+    if (error.code === 'ECONNREFUSED' || 
+        error.code === 'ENOTFOUND' ||
+        error.code === 'ETIMEDOUT' ||
+        error.response?.status >= 500) {
       return res.status(503).json({
         success: false,
         message: 'AI service is temporarily unavailable. Please try again later.',
@@ -358,7 +373,10 @@ router.get('/session/history/:sessionId', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Error retrieving session history:', error);
     
-    if (error.code === 'ECONNREFUSED' || error.response?.status >= 500) {
+    if (error.code === 'ECONNREFUSED' || 
+        error.code === 'ENOTFOUND' ||
+        error.code === 'ETIMEDOUT' ||
+        error.response?.status >= 500) {
       return res.status(503).json({
         success: false,
         message: 'AI service is temporarily unavailable',
@@ -382,22 +400,42 @@ router.get('/sessions', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
 
+    // Check if AI service URL is configured
+    if (!AI_SERVICE_URL || AI_SERVICE_URL === 'http://127.0.0.1:8001') {
+      console.warn('⚠️ AI_SERVICE_URL not configured, returning empty sessions');
+      return res.status(200).json({
+        success: true,
+        sessions: [],
+        message: 'AI service not configured. No sessions available.',
+        aiServiceAvailable: false
+      });
+    }
+
     // Call Python AI service to get all user sessions
     const response = await axios.get(`${AI_SERVICE_URL}/user/${userId}/history`, axiosConfig);
 
     res.status(200).json({
       success: true,
       sessions: response.data.sessions || [],
-      message: 'User sessions retrieved successfully'
+      message: 'User sessions retrieved successfully',
+      aiServiceAvailable: true
     });
 
   } catch (error) {
     console.error('Error retrieving user sessions:', error);
     
-    if (error.code === 'ECONNREFUSED' || error.response?.status >= 500) {
-      return res.status(503).json({
-        success: false,
-        message: 'AI service is temporarily unavailable',
+    // If AI service is unavailable, return empty sessions instead of error
+    // This allows the frontend to still render properly
+    if (error.code === 'ECONNREFUSED' || 
+        error.code === 'ENOTFOUND' ||
+        error.code === 'ETIMEDOUT' ||
+        error.response?.status >= 500) {
+      console.warn('⚠️ AI service unavailable, returning empty sessions');
+      return res.status(200).json({
+        success: true,
+        sessions: [],
+        message: 'AI service is temporarily unavailable. No sessions available.',
+        aiServiceAvailable: false,
         error: 'AI_SERVICE_UNAVAILABLE'
       });
     }
