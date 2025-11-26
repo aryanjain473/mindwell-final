@@ -39,6 +39,8 @@ console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
 console.log('GOOGLE_PLACES_API_KEY:', process.env.GOOGLE_PLACES_API_KEY ? 'Set' : 'Not set');
 console.log('GOOGLE_MAPS_API_KEY:', process.env.GOOGLE_MAPS_API_KEY ? 'Set' : 'Not set');
+console.log('AI_SERVICE_URL:', process.env.AI_SERVICE_URL || 'NOT SET (using default: http://127.0.0.1:8001)');
+console.log('CLIENT_URL:', process.env.CLIENT_URL || 'NOT SET (using default: http://localhost:5173)');
 
 // Connect to MongoDB
 connectDB();

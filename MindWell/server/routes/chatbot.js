@@ -476,11 +476,25 @@ router.get('/sessions', authMiddleware, async (req, res) => {
  */
 router.get('/health', async (req, res) => {
   try {
+    console.log(`🔍 Health check: Calling AI service at ${AI_SERVICE_URL}/health`);
+    
+    if (!AI_SERVICE_URL || AI_SERVICE_URL === 'http://127.0.0.1:8001') {
+      console.error('❌ AI_SERVICE_URL not configured!');
+      return res.status(503).json({
+        success: false,
+        aiService: 'offline',
+        message: 'AI service URL not configured',
+        error: 'AI_SERVICE_URL not set',
+        aiServiceUrl: AI_SERVICE_URL
+      });
+    }
+
     const response = await axios.get(`${AI_SERVICE_URL}/health`, {
       ...axiosConfig,
-      timeout: 5000
+      timeout: 10000 // Increased timeout for health check
     });
 
+    console.log('✅ AI service health check successful:', response.data);
     res.status(200).json({
       success: true,
       aiService: 'online',
@@ -489,13 +503,18 @@ router.get('/health', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('AI service health check failed:', error);
+    console.error('❌ AI service health check failed:', error.message);
+    console.error('   Error code:', error.code);
+    console.error('   AI_SERVICE_URL:', AI_SERVICE_URL);
+    console.error('   Full error:', error);
     
     res.status(503).json({
       success: false,
       aiService: 'offline',
       message: 'AI service is unavailable',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'AI service unavailable'
+      error: process.env.NODE_ENV === 'development' ? error.message : 'AI service unavailable',
+      errorCode: error.code,
+      aiServiceUrl: AI_SERVICE_URL
     });
   }
 });
