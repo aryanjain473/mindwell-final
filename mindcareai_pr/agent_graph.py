@@ -4,7 +4,7 @@ from typing import List, TypedDict, Optional, Literal, Dict, Any
 
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
-from langchain.schema import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
