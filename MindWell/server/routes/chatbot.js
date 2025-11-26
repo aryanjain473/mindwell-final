@@ -11,7 +11,7 @@ const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8001';
 // Force IPv4 resolution
 const axiosConfig = {
   family: 4, // Force IPv4
-  timeout: 30000
+  timeout: 60000 // Increased to 60 seconds for free tier wake-up time
 };
 
 // ===========================================
@@ -141,11 +141,17 @@ router.post('/session/start', authMiddleware, async (req, res) => {
     console.log('   Final email to use:', emailToUse);
 
     // Call Python AI service to start session
+    console.log(`🔗 Calling AI service: ${AI_SERVICE_URL}/session/start`);
     const response = await axios.post(`${AI_SERVICE_URL}/session/start`, {
       user_id: userId,
       email: emailToUse,
       consent_email: consent
-    }, axiosConfig);
+    }, {
+      ...axiosConfig,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
     const { session_id, question } = response.data;
 
@@ -157,17 +163,22 @@ router.post('/session/start', authMiddleware, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error starting chat session:', error);
+    console.error('❌ Error starting chat session:', error.message);
+    console.error('   Error code:', error.code);
+    console.error('   Error response:', error.response?.status, error.response?.data);
+    console.error('   AI_SERVICE_URL:', AI_SERVICE_URL);
     
     // Handle AI service unavailable
     if (error.code === 'ECONNREFUSED' || 
         error.code === 'ENOTFOUND' ||
         error.code === 'ETIMEDOUT' ||
         error.response?.status >= 500) {
+      console.error('⚠️ AI service unavailable - returning 503');
       return res.status(503).json({
         success: false,
         message: 'AI service is temporarily unavailable. Please try again later.',
-        error: 'AI_SERVICE_UNAVAILABLE'
+        error: 'AI_SERVICE_UNAVAILABLE',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
 
@@ -213,7 +224,13 @@ router.post('/session/respond', authMiddleware, async (req, res) => {
     }
 
     // Call Python AI service to process message
-    const response = await axios.post(`${AI_SERVICE_URL}/session/respond`, requestBody, axiosConfig);
+    console.log(`🔗 Calling AI service: ${AI_SERVICE_URL}/session/respond`);
+    const response = await axios.post(`${AI_SERVICE_URL}/session/respond`, requestBody, {
+      ...axiosConfig,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
 
     const { 
       finished: sessionFinished, 
@@ -310,17 +327,22 @@ router.post('/session/respond', authMiddleware, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error processing chat message:', error);
+    console.error('❌ Error processing chat message:', error.message);
+    console.error('   Error code:', error.code);
+    console.error('   Error response:', error.response?.status, error.response?.data);
+    console.error('   AI_SERVICE_URL:', AI_SERVICE_URL);
     
     // Handle AI service unavailable
     if (error.code === 'ECONNREFUSED' || 
         error.code === 'ENOTFOUND' ||
         error.code === 'ETIMEDOUT' ||
         error.response?.status >= 500) {
+      console.error('⚠️ AI service unavailable - returning 503');
       return res.status(503).json({
         success: false,
         message: 'AI service is temporarily unavailable. Please try again later.',
-        error: 'AI_SERVICE_UNAVAILABLE'
+        error: 'AI_SERVICE_UNAVAILABLE',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
 
