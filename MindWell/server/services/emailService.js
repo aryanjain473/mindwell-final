@@ -3,15 +3,21 @@ import nodemailer from 'nodemailer';
 // Create reusable transporter object using Gmail SMTP
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
     auth: {
       user: process.env.EMAIL_USER, // Your Gmail address
       pass: process.env.EMAIL_APP_PASSWORD // Your Gmail App Password
     },
     // Additional options to improve delivery
     tls: {
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      ciphers: 'SSLv3'
     },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
     debug: false, // Disable debug logging
     logger: false // Disable logger
   });
