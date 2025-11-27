@@ -57,10 +57,11 @@ router.post('/send', validateEmail, async (req, res) => {
     const emailResult = await sendOTPEmail(email, otpCode, type);
 
     if (!emailResult.success) {
+      console.error('❌ Failed to send OTP email:', emailResult.error);
       await OTP.findByIdAndDelete(otpRecord._id);
       return res.status(500).json({
         message: 'Failed to send OTP email',
-        error: emailResult.error
+        error: process.env.NODE_ENV === 'development' ? emailResult.error : 'Email service error. Please check backend logs.'
       });
     }
 
@@ -196,9 +197,11 @@ router.post('/resend', validateEmail, async (req, res) => {
     const emailResult = await sendOTPEmail(email, otpCode, type);
 
     if (!emailResult.success) {
+      console.error('❌ Failed to send OTP email:', emailResult.error);
       await OTP.findByIdAndDelete(otpRecord._id);
       return res.status(500).json({
-        message: 'Failed to resend OTP email'
+        message: 'Failed to resend OTP email',
+        error: process.env.NODE_ENV === 'development' ? emailResult.error : 'Email service error. Please check backend logs.'
       });
     }
 

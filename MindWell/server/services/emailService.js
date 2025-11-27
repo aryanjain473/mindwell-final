@@ -111,8 +111,11 @@ export const sendOTPEmail = async (email, otp, type = 'email_verification') => {
     return { success: true, messageId: result.messageId };
     
   } catch (error) {
-    console.error('Error sending email:', error);
-    return { success: false, error: error.message };
+    console.error('❌ Error sending email:', error.message);
+    console.error('   Error code:', error.code);
+    console.error('   Error response:', error.response?.message);
+    console.error('   Full error:', error);
+    return { success: false, error: error.message, code: error.code };
   }
 };
 
