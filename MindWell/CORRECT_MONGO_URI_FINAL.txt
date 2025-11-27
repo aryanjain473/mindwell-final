@@ -1,0 +1,2 @@
+mongodb+srv://aryangj_db_user:Aryanjain31@cluster0.8abgndi.mongodb.net/mindcare_ai?retryWrites=true&w=majority
+

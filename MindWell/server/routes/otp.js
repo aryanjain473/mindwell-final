@@ -53,22 +53,17 @@ router.post('/send', validateEmail, async (req, res) => {
 
     await otpRecord.save();
 
-    // Send OTP email
+    // Send OTP email (always succeeds - OTP is logged even if email fails)
     const emailResult = await sendOTPEmail(email, otpCode, type);
 
-    if (!emailResult.success) {
-      console.error('❌ Failed to send OTP email:', emailResult.error);
-      await OTP.findByIdAndDelete(otpRecord._id);
-      return res.status(500).json({
-        message: 'Failed to send OTP email',
-        error: process.env.NODE_ENV === 'development' ? emailResult.error : 'Email service error. Please check backend logs.'
-      });
-    }
-
+    // OTP is always logged to console, so even if email fails, user can get OTP from logs
     res.status(200).json({
-      message: 'OTP sent successfully',
+      message: emailResult.success 
+        ? 'OTP sent successfully to your email' 
+        : 'OTP generated successfully. Check your email or backend logs if email not received.',
       email: email,
-      expiresIn: '10 minutes'
+      expiresIn: '10 minutes',
+      note: !emailResult.success ? 'Email service may be unavailable. OTP is logged in backend console.' : undefined
     });
 
   } catch (error) {
@@ -193,22 +188,17 @@ router.post('/resend', validateEmail, async (req, res) => {
 
     await otpRecord.save();
 
-    // Send OTP email
+    // Send OTP email (always succeeds - OTP is logged even if email fails)
     const emailResult = await sendOTPEmail(email, otpCode, type);
 
-    if (!emailResult.success) {
-      console.error('❌ Failed to send OTP email:', emailResult.error);
-      await OTP.findByIdAndDelete(otpRecord._id);
-      return res.status(500).json({
-        message: 'Failed to resend OTP email',
-        error: process.env.NODE_ENV === 'development' ? emailResult.error : 'Email service error. Please check backend logs.'
-      });
-    }
-
+    // OTP is always logged to console, so even if email fails, user can get OTP from logs
     res.status(200).json({
-      message: 'OTP resent successfully',
+      message: emailResult.success 
+        ? 'OTP resent successfully to your email' 
+        : 'OTP regenerated successfully. Check your email or backend logs if email not received.',
       email: email,
-      expiresIn: '10 minutes'
+      expiresIn: '10 minutes',
+      note: !emailResult.success ? 'Email service may be unavailable. OTP is logged in backend console.' : undefined
     });
 
   } catch (error) {

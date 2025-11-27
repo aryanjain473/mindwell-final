@@ -57,7 +57,9 @@ router.post('/register', validateRegistration, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('❌ Registration error:', error.message);
+    console.error('   Error name:', error.name);
+    console.error('   Error stack:', error.stack);
     
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
@@ -67,8 +69,16 @@ router.post('/register', validateRegistration, async (req, res) => {
       });
     }
 
+    // Handle duplicate key error (MongoDB)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: 'User already exists with this email address'
+      });
+    }
+
     res.status(500).json({
-      message: 'Registration failed. Please try again.'
+      message: 'Registration failed. Please try again.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -102,9 +112,19 @@ router.post('/login', validateLogin, async (req, res) => {
     }
 
     // Compare password
-    const isMatch = await user.comparePassword(password);
+    let isMatch = false;
+    try {
+      isMatch = await user.comparePassword(password);
+    } catch (compareError) {
+      console.error('❌ Password comparison error:', compareError.message);
+      return res.status(500).json({
+        message: 'Login failed. Please try again.',
+        error: process.env.NODE_ENV === 'development' ? compareError.message : undefined
+      });
+    }
     
     if (!isMatch) {
+      console.log('❌ Password mismatch for user:', email);
       return res.status(401).json({
         message: 'Invalid email or password'
       });
