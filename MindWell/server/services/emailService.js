@@ -33,7 +33,21 @@ export const sendOTPEmail = async (email, otp, type = 'email_verification') => {
       return { success: true, message: 'Email service not configured - OTP logged to console' };
     }
 
+    console.log('📧 Attempting to send OTP email to:', email);
+    console.log('📧 Using SMTP host: smtp.gmail.com:465');
+    
     const transporter = createTransporter();
+    
+    // Verify connection before sending
+    try {
+      await transporter.verify();
+      console.log('✅ SMTP server connection verified');
+    } catch (verifyError) {
+      console.error('❌ SMTP verification failed:', verifyError.message);
+      // Try alternative port 587
+      console.log('🔄 Trying alternative port 587...');
+      return await sendOTPEmailWithPort587(email, otp, type);
+    }
     
     let subject, html;
     
@@ -115,6 +129,86 @@ export const sendOTPEmail = async (email, otp, type = 'email_verification') => {
     console.error('   Error code:', error.code);
     console.error('   Error response:', error.response?.message);
     console.error('   Full error:', error);
+    
+    // If connection timeout on port 465, try port 587
+    if (error.code === 'ETIMEDOUT' || error.code === 'ECONNREFUSED') {
+      console.log('🔄 Connection failed, trying alternative port 587...');
+      return await sendOTPEmailWithPort587(email, otp, type);
+    }
+    
+    return { success: false, error: error.message, code: error.code };
+  }
+};
+
+// Alternative function to try port 587
+const sendOTPEmailWithPort587 = async (email, otp, type = 'email_verification') => {
+  try {
+    const transporter = nodemailer.createTransporter({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_APP_PASSWORD
+      },
+      tls: {
+        rejectUnauthorized: false
+      },
+      connectionTimeout: 20000,
+      greetingTimeout: 20000,
+      socketTimeout: 20000
+    });
+
+    let subject, html;
+    
+    switch (type) {
+      case 'email_verification':
+        subject = 'Verify Your MindWell Account';
+        html = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: linear-gradient(135deg, #14b8a6, #a855f7); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+              <h1 style="color: white; margin: 0; font-size: 28px;">MindWell</h1>
+              <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your Mental Wellness Companion</p>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border-radius: 0 0 10px 10px;">
+              <h2 style="color: #1f2937; margin: 0 0 20px 0;">Verify Your Email Address</h2>
+              <p style="color: #6b7280; margin: 0 0 20px 0; line-height: 1.6;">
+                Thank you for signing up with MindWell! To complete your registration, please verify your email address using the OTP below:
+              </p>
+              <div style="background: white; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; border: 2px solid #e5e7eb;">
+                <h3 style="color: #1f2937; margin: 0 0 10px 0; font-size: 24px;">Your Verification Code</h3>
+                <div style="background: #f3f4f6; padding: 15px; border-radius: 6px; font-size: 32px; font-weight: bold; color: #14b8a6; letter-spacing: 5px; font-family: monospace;">
+                  ${otp}
+                </div>
+                <p style="color: #6b7280; margin: 10px 0 0 0; font-size: 14px;">
+                  This code will expire in 10 minutes
+                </p>
+              </div>
+              <p style="color: #6b7280; margin: 20px 0 0 0; font-size: 14px;">
+                If you didn't create an account with MindWell, please ignore this email.
+              </p>
+            </div>
+          </div>
+        `;
+        break;
+      default:
+        subject = 'Your MindWell Verification Code';
+        html = `<p>Your verification code is: <strong>${otp}</strong></p>`;
+    }
+
+    const mailOptions = {
+      from: `"MindWell" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: subject,
+      html: html
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully via port 587:', result.messageId);
+    return { success: true, messageId: result.messageId };
+    
+  } catch (error) {
+    console.error('❌ Error sending email via port 587:', error.message);
     return { success: false, error: error.message, code: error.code };
   }
 };
